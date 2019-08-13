@@ -18,6 +18,10 @@ namespace Belcorp.API.ViewModels.Mappings
                    map.MapFrom(s => s.CategoryName))
                .ForMember(vm=> vm.Description,map=> map.MapFrom(s=>s.CategoryDescription));
 
+            CreateMap<Product, ProductViewModel>()
+                .ForMember(vm => vm.CategoryName,
+                map => map.MapFrom(s => s.Category.CategoryName));
+
         }
     }
 }

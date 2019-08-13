@@ -9,35 +9,37 @@ namespace Belcorp.Service
 {
     public class ProductService : IProductService
     {
-        private readonly IGenericRepository<Product> productRepository;
-        public ProductService(IGenericRepository<Product> productRepository)
+        private readonly IUnitOfWork _uow;
+        private readonly IGenericRepository<Product> _productRepository;
+        public ProductService(IUnitOfWork unitOfWork)
         {
-            this.productRepository = productRepository;
+            _uow = unitOfWork;
+            _productRepository = _uow.GetRepository<Product>();
         }
         public async Task<Product> AddProduct(Product product)
         {
-            return await productRepository.AddAsync(product);
+            return await _productRepository.AddAsync(product);
         }
 
         public async void DeleteProduct(int id)
         {
-            var product = await productRepository.GetByIdAsync(id);
-            await productRepository.DeleteAsync(product);
+            var product = await _productRepository.GetByIdAsync(id);
+            await _productRepository.DeleteAsync(product);
         }
 
         public async Task<IEnumerable<Product>> GetAllProducts()
         {
-            return await productRepository.GetAllAsync();
+            return await _productRepository.GetAllAsync();
         }
 
         public async Task<Product> GetProductById(int id)
         {
-            return await productRepository.GetByIdAsync(id);
+            return await _productRepository.GetByIdAsync(id);
         }
 
-        public Task<Product> UpdateProduct(Product product)
+        public async Task<Product> UpdateProduct(Product product)
         {
-            
+            return await _productRepository.UpdateAsync(product);
         }
     }
 

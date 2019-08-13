@@ -26,7 +26,8 @@ namespace Belcorp.API
 
             //Register Generic Repository
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-            services.AddTransient<IUnitOfWork, UnitOfWork>();
+            services.AddTransient<IUnitOfWork, UnitOfWork<SalesDbContext>>();
+          
 
             // Automapper Configuration
             AutoMapperConfiguracion.Configure();

@@ -9,10 +9,12 @@ namespace Belcorp.Service
 {
     public class CategoryService : ICategoryService
     {
+        private readonly IUnitOfWork _uow;
         private readonly IGenericRepository<Category> _categoryRepository;
-        public CategoryService(IGenericRepository<Category> categoryRepository)
+        public CategoryService(IUnitOfWork unitOfWork)
         {
-            _categoryRepository = categoryRepository;
+            _uow = unitOfWork;
+            _categoryRepository = _uow.GetRepository<Category>();
         }
         public async Task<Category> AddCategory(Category category)
         {

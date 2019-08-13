@@ -10,82 +10,79 @@ namespace Belcorp.Data.Abstract
 {
     public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
-        private readonly SalesDbContext _context;
-        private readonly IUnitOfWork _unitOfWork;
-
-        public GenericRepository(SalesDbContext context)
+        protected readonly DbContext _context;
+        protected readonly DbSet<T> _dbSet;
+        public GenericRepository(DbContext context)
         {
-            _context = context;
-            _unitOfWork = new UnitOfWork(context);
+            _context = context ?? throw new ArgumentException(nameof(context));
+            _dbSet = _context.Set<T>();
         }
 
         public IQueryable<T> Query()
         {
-            return _context.Set<T>().AsQueryable();
+            return _dbSet.AsQueryable();
         }
 
         public ICollection<T> GetAll()
         {
-            return _context.Set<T>().ToList();
+            return _dbSet.ToList();
         }
 
         public async Task<ICollection<T>> GetAllAsync()
         {
-            return await _context.Set<T>().ToListAsync();
+            return await _dbSet.ToListAsync();
         }
 
         public T GetById(int id)
         {
-            return _context.Set<T>().Find(id);
+            return _dbSet.Find(id);
         }
 
         public async Task<T> GetByIdAsync(int id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await _dbSet.FindAsync(id);
         }
 
         public T GetByUniqueId(string id)
         {
-            return _context.Set<T>().Find(id);
+            return _dbSet.Find(id);
         }
 
         public async Task<T> GetByUniqueIdAsync(string id)
         {
-            return await _context.Set<T>().FindAsync(id);
+            return await _dbSet.FindAsync(id);
         }
 
         public T Find(Expression<Func<T, bool>> match)
         {
-            return _context.Set<T>().SingleOrDefault(match);
+            return _dbSet.SingleOrDefault(match);
         }
 
         public async Task<T> FindAsync(Expression<Func<T, bool>> match)
         {
-            return await _context.Set<T>().SingleOrDefaultAsync(match);
+            return await _dbSet.SingleOrDefaultAsync(match);
         }
 
         public ICollection<T> FindAll(Expression<Func<T, bool>> match)
         {
-            return _context.Set<T>().Where(match).ToList();
+            return _dbSet.Where(match).ToList();
         }
 
         public async Task<ICollection<T>> FindAllAsync(Expression<Func<T, bool>> match)
         {
-            return await _context.Set<T>().Where(match).ToListAsync();
+            return await _dbSet.Where(match).ToListAsync();
         }
 
         public T Add(T entity)
         {
-            _context.Set<T>().Add(entity);
-            _context.SaveChanges();
+            _dbSet.Add(entity);
             return entity;
         }
 
         public async Task<T> AddAsync(T entity)
         {
-            _context.Set<T>().Add(entity);
-            await _unitOfWork.Commit();
-            return entity;
+           await _dbSet.AddAsync(entity);
+           return entity;
         }
 
         public T Update(T updated)
@@ -97,8 +94,6 @@ namespace Belcorp.Data.Abstract
 
             _context.Set<T>().Attach(updated);
             _context.Entry(updated).State = EntityState.Modified;
-            _context.SaveChanges();
-
             return updated;
         }
 
@@ -109,39 +104,37 @@ namespace Belcorp.Data.Abstract
                 return null;
             }
 
-            _context.Set<T>().Attach(updated);
+            _dbSet.Attach(updated);
             _context.Entry(updated).State = EntityState.Modified;
-            await _unitOfWork.Commit();
-
+            await _context.SaveChangesAsync();
             return updated;
         }
 
         public void Delete(T t)
         {
-            _context.Set<T>().Remove(t);
-            _context.SaveChanges();
+            _dbSet.Remove(t);
         }
 
         public async Task<int> DeleteAsync(T t)
         {
-            _context.Set<T>().Remove(t);
-            return await _unitOfWork.Commit();
+            _dbSet.Remove(t);
+            return await _context.SaveChangesAsync();
         }
 
         public int Count()
         {
-            return _context.Set<T>().Count();
+            return _dbSet.Count();
         }
 
         public async Task<int> CountAsync()
         {
-            return await _context.Set<T>().CountAsync();
+            return await _dbSet.CountAsync();
         }
 
         public IEnumerable<T> Filter(Expression<Func<T, bool>> filter = null, Func<IQueryable<T>, IOrderedQueryable<T>> orderBy = null, string includeProperties = "", int? page = null,
             int? pageSize = null)
         {
-            IQueryable<T> query = _context.Set<T>();
+            IQueryable<T> query = _dbSet;
             if (filter != null)
             {
                 query = query.Where(filter);
@@ -171,12 +164,12 @@ namespace Belcorp.Data.Abstract
 
         public IQueryable<T> FindBy(Expression<Func<T, bool>> predicate)
         {
-            return _context.Set<T>().Where(predicate);
+            return _dbSet.Where(predicate);
         }
 
         public bool Exist(Expression<Func<T, bool>> predicate)
         {
-            var exist = _context.Set<T>().Where(predicate);
+            var exist = _dbSet.Where(predicate);
             return exist.Any() ? true : false;
         }
     }
